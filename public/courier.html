@@ -69,27 +69,37 @@
                     document.getElementById('shift-control-box').style.display = 'none';
                 }
 
+                // Locate this inside the refresh() function in public/courier.html
                 document.getElementById('list').innerHTML = stops.map(s => `
                     <div class="stop-card ${s.is_flagged ? 'flagged' : ''} ${s.is_visited ? 'visited' : ''}">
-                        <div>
+                        <div style="flex: 1;">
                             <h2>${s.name}</h2>
                             <span>${s.is_flagged ? '⚠️ PICKUP REQUESTED' : 'Normal Drop-off'}</span>
                         </div>
                         <div class="status-badge">
                             ${s.is_visited 
                                 ? `✅<span class="time-badge">${formatLocalTime(s.arrival_time)}</span>` 
-                                : '...'
+                                : `<div style="margin-top: 10px;">
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" 
+                                    target="_blank" 
+                                    rel="noopener"
+                                    class="nav-btn">
+                                    🗺️ Open Navigation
+                                    </a>
+                                </div>`
                             }
                         </div>
                     </div>
                 `).join('');
+
+                console.log(s.lat, s.lng)
             } catch (e) {
                 console.error("View refresh exception caught", e);
             }
         }
 
         watchGPS();
-        setInterval(refresh, 5000);
+        setInterval(refresh, 10000);
         refresh(); // Run immediately on load
 
         if ('serviceWorker' in navigator) {

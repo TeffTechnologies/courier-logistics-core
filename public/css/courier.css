@@ -46,3 +46,28 @@ h1 { font-size: 1.4rem; margin: 8px 0 20px 0; font-weight: 600; color: #fff; }
     font-size: 1rem;
     cursor: pointer;
 }
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #4285F4; /* Google Maps Blue */
+    color: white !important;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s ease;
+}
+
+.nav-btn:active {
+    background-color: #3367D6; /* Darker blue on finger press */
+}
+
+/* If the stop is already visited, mute the button color slightly */
+.stop-card.visited .nav-btn {
+    background-color: #64748b;
+}
