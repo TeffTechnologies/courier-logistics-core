@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin God View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <h1>Live Route Status</h1>
+    <div style="background: #e2e8f0; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin: 0; font-size: 1rem; color: #1e293b;">Shift Management Controls</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Clears the live map dashboard tracking states for tomorrow morning.</p>
+        </div>
+        <button id="master-reset-btn" onclick="resetActiveRoute()" style="background: #0f172a; color: white; border: none; padding: 12px 20px; font-weight: bold; border-radius: 8px;">
+            Start New Shift
+        </button>
+    </div>
+    <div id="admin-list"></div>
+
+    <script>
+        const token = new URLSearchParams(window.location.search).get('token');
+
+        // Helper function to convert raw UTC database string to local Central time
+        function formatLocalTime(utcString) {
+            if (!utcString) return 'Pending';
+            // Appending ' UTC' forces the browser to read the SQLite string correctly as UTC
+            const date = new Date(utcString + ' UTC'); 
+            return date.toLocaleTimeString('en-US', {
+                timeZone: 'America/Chicago',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        async function clearStop(id) {
+            await fetch(`/api/admin/clear?token=${token}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id })
+            });
+            load();
+        }
+
+        async function load() {
+            const res = await fetch('/api/stops');
+            const stops = await res.json();
+            document.getElementById('admin-list').innerHTML = stops.map(s => `
+                <div style="border: 1px solid #ccc; padding: 10px; margin: 5px; display: flex; justify-content: space-between; background: ${s.is_visited ? '#d4edda' : s.is_flagged ? '#fff3cd' : '#fff'}">
+                    <strong>${s.name}</strong>
+                    <span>
+                        ${formatLocalTime(s.arrival_time)}
+                    </span>
+                    <button onclick="clearStop(${s.id})">Manual Clear</button>
+                </div>
+            `).join('');
+        }
+        setInterval(load, 5000);
+        load();
+
+        async function resetActiveRoute() {
+            if (!confirm("Are you certain you want to clear yesterday's route data? Ensure your crew has completed checking logs.")) return;
+            
+            try {
+                const response = await fetch(`/api/admin/reset-route?token=${token}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    alert("Dashboard metrics initialized back to baseline!");
+                    load(); // Reload table display immediately
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                console.error("Failed to connect to administrative reset network route", err);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Courier Terminal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/courier.css">
+</head>
+<body>
+    <div id="shift-control-box" class="shift-banner" style="display: none;">
+        <div>
+            <h3>Yesterday's Data Detected</h3>
+            <p>The system is still showing completed stops from your last run. Tap below to clear the map and start today's tracking loop.</p>
+        </div>
+        <button onclick="startNewShift()">🚀 Start New Shift</button>
+    </div>
+
+    <h1>Route Terminal</h1>
+    <div id="list"></div>
+
+    <script>
+        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {});
+
+        function formatLocalTime(utcString) {
+            if (!utcString) return '';
+            const date = new Date(utcString + ' UTC'); 
+            return date.toLocaleTimeString('en-US', {
+                timeZone: 'America/Chicago',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function watchGPS() {
+            navigator.geolocation.watchPosition(pos => {
+                fetch('/api/courier/ping', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                });
+            }, null, { enableHighAccuracy: true });
+        }
+
+        async function startNewShift() {
+            if (!confirm("Clear old manifest details and lookups?")) return;
+            try {
+                const res = await fetch('/api/courier/reset-shift', { method: 'POST' });
+                const data = await res.json();
+                if (data.status === "success") {
+                    document.getElementById('shift-control-box').style.display = 'none';
+                    refresh();
+                }
+            } catch (err) {
+                alert("Network communication error during initialization.");
+            }
+        }
+
+        async function refresh() {
+            try {
+                const res = await fetch('/api/stops');
+                const stops = await res.json();
+                
+                // Show banner if the very last stop in the route data array is marked visited
+                const finalStop = stops[stops.length - 1];
+                if (finalStop && finalStop.is_visited === 1) {
+                    document.getElementById('shift-control-box').style.display = 'flex';
+                } else {
+                    document.getElementById('shift-control-box').style.display = 'none';
+                }
+
+                document.getElementById('list').innerHTML = stops.map(s => `
+                    <div class="stop-card ${s.is_flagged ? 'flagged' : ''} ${s.is_visited ? 'visited' : ''}">
+                        <div>
+                            <h2>${s.name}</h2>
+                            <span>${s.is_flagged ? '⚠️ PICKUP REQUESTED' : 'Normal Drop-off'}</span>
+                        </div>
+                        <div class="status-badge">
+                            ${s.is_visited 
+                                ? `✅<span class="time-badge">${formatLocalTime(s.arrival_time)}</span>` 
+                                : '...'
+                            }
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error("View refresh exception caught", e);
+            }
+        }
+
+        watchGPS();
+        setInterval(refresh, 5000);
+        refresh(); // Run immediately on load
+    </script>
+</body>
+</html>

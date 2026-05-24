@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>Flag Mail Pickup</title>
+        <link rel="stylesheet" href="/css/global.css">
+        <link rel="stylesheet" href="/css/index.css">
+    </head>
+<body>
+    <div class="card">
+        <h1 id="stop-title">Identify Stop...</h1>
+        <input type="tel" id="phone" placeholder="Phone for delivery text (Optional)">
+        <button onclick="submitFlag()">Flag for Pickup</button>
+    </div>
+
+    <script>
+        const stopId = new URLSearchParams(window.location.search).get('stopId');
+        // Load phone from localStorage
+        document.getElementById('phone').value = localStorage.getItem('phone') || '';
+
+        async function submitFlag() {
+            const phone = document.getElementById('phone').value;
+            localStorage.setItem('phone', phone);
+            await fetch('/api/scan', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ stopId, phone })
+            });
+            alert('Flagged! You will be notified when the route is complete.');
+        }
+
+        async function getStopName() {
+            if (!stopId) {
+                document.getElementById('stop-title').innerText = "Unknown Location";
+                return;
+            }
+            try {
+                const res = await fetch('/api/stops');
+                const stops = await res.json();
+                // Find the specific stop details matching the URL ID
+                const currentStop = stops.find(s => s.id == stopId);
+                
+                if (currentStop) {
+                    document.getElementById('stop-title').innerText = currentStop.name;
+                } else {
+                    document.getElementById('stop-title').innerText = "Location Not Found";
+                }
+            } catch (err) {
+                document.getElementById('stop-title').innerText = "Error Loading Location";
+            }
+        }
+
+        // Fire the name lookup immediately on page boot
+        getStopName();
+    </script>
+</body>
+</html>

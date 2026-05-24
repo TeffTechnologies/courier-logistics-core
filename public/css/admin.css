@@ -1,0 +1,40 @@
+h1 { font-size: 1.4rem; margin: 12px 0 20px 0; font-weight: 700; color: #1a1a1a; }
+#admin-list { display: flex; flex-direction: column; gap: 10px; }
+
+.admin-card { 
+    border: 1px solid #e2e8f0; 
+    padding: 16px; 
+    border-radius: 12px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: #fff;
+}
+.info-block strong { display: block; font-size: 1.05rem; margin-bottom: 4px; color: #1e293b; }
+.info-block span { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+
+button { 
+    background: #fff; 
+    color: #0f172a; 
+    border: 1px solid #cbd5e1; 
+    padding: 10px 14px; 
+    border-radius: 8px; 
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+button:active { background: #f8fafc; transform: scale(0.97); }
+
+/* Status Alterations */
+.card-visited { background: #ecfdf5; border-color: #a7f3d0; }
+.card-visited span { color: #059669; }
+.card-visited button { display: none; }
+
+.card-flagged { background: #fffbeb; border-color: #fde68a; animation: pulse 2s infinite; }
+.card-flagged span { color: #d97706; font-weight: 600; }
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(253, 230, 138, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(253, 230, 138, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(253, 230, 138, 0); }
+}
