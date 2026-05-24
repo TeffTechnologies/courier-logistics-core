@@ -1,0 +1,10 @@
+# Environments
+.env
+.env.local
+
+# Dependency directories
+node_modules/
+
+# Local Database Files
+*.db
+*.db-journal

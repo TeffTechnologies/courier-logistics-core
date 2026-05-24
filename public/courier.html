@@ -3,6 +3,7 @@
 <head>
     <title>Courier Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/courier.css">
 </head>
@@ -90,6 +91,14 @@
         watchGPS();
         setInterval(refresh, 5000);
         refresh(); // Run immediately on load
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker safely registered with scope:', reg.scope))
+                    .catch(err => console.error('Service Worker installation faulted:', err));
+            });
+        }
     </script>
 </body>
 </html>
