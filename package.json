@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ngrok/ngrok": "^1.7.0",
     "better-sqlite3": "^12.10.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
