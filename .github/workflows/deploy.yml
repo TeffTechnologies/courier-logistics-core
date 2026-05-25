@@ -1,0 +1,45 @@
+name: Node.js Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository source code
+      uses: actions/checkout@v4
+
+    - name: Deploy application code updates via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # 1. Navigate to the optional installation directory
+          cd /opt/courier-app
+          
+          # 2. Check out the latest commit changes directly from GitHub
+          if [ -d ".git" ]; then
+            git pull origin main
+          else
+            git clone https://github.com/${{ github.repository }}.git .
+          fi
+          
+          # 3. Clean install production dependencies
+          npm ci --only=production
+          
+          # 4. Launch or reload the background process seamlessly without downtime
+          pm2 describe courier-app > /dev/null 2>&1
+          if [ $? -eq 0 ]; then
+            echo "[DEPLOY] Application process active. Reloading source mapping..."
+            pm2 reload courier-app
+          else
+            echo "[DEPLOY] Cold booting new application process layer..."
+            pm2 start server.js --name "courier-app"
+            pm2 startup
+            pm2 save
+          fi
